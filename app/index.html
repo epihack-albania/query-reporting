@@ -37,57 +37,9 @@
         </ul>
       </div>
 
-      <div class="row">
-        <div class="col-md-12 form-group">
-          <label for="period-start">Time Period</label>
-          <input type="date" class="form-control" id="period-start">
-          <input type="date" class="form-control" id="period-end">
-        </div>
-
-        <div class="col-md-12 form-group">
-          <label for="location">Location</label>
-          <select class="form-control" id="location">
-            <option value="1">Tirana
-            <option value="2">Saranda
-            <option value="3">Elbasan
-            <option value="4">Korça
-            <option value="5">Durrsi
-            <option value="6">Shkodra
-          </select>
-        </div>
-
-        <div class="col-md-12 form-group">
-          <label for="data-source">Data Source</label>
-          <select id="data-source" class="form-control">
-            <option value="1">CCHF
-            <option value="2">Brucellosis
-            <option value="3">HBV and HCV
-            <option value="4">Field Ticks
-            <option value="5">Sand flies
-            <option value="6">Mosquitoes
-            <option value="7">Hanta Virus
-          </select>
-        </div>
+      <div id="app">
       </div>
 
-      <div class="col-md-12">
-        <fieldset>
-          <legend>Filters</legend>
-          <div class="row form-inline filter-row">
-            <label for="filter1">First filter</label>
-            <input id="filter1" class="form-control">
-            <button class="btn btn-danger">Remove filter</button>
-          </div>
-          <div class="row form-inline filter-row">
-            <label for="filter2">Second filter</label>
-            <input id="filter2" class="form-control">
-            <button class="btn btn-danger">Remove filter</button>
-          </div>
-          <div class="row">
-            <button class="btn btn-primary">Add filter</button>
-          </div>
-        </fieldset>
-      </div>
 
       <div class="col-md-12">
         <table id="filtered-results" class="table">
@@ -237,6 +189,9 @@
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <script src="/bower_components/jquery/dist/jquery.js"></script>
+    <script src="/bower_components/lodash/lodash.js"></script>
+    <script src="/bower_components/react/react.js"></script>
+    <script src="/bower_components/react/react-dom.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 

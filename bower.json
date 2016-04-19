@@ -3,7 +3,9 @@
   "private": true,
   "dependencies": {
     "bootstrap-sass": "~3.3.5",
-    "modernizr": "~2.8.1"
+    "modernizr": "~2.8.1",
+    "lodash": "~4.11.1",
+    "react": "~15.0.1"
   },
   "overrides": {
     "bootstrap-sass": {
