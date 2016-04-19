@@ -37,48 +37,38 @@ var Locations = [
 ];
 
 class LocationPicker extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {location: ''};
-  }
-  handleSelect(ev) {
-    this.setState({location: ev.target.selectedIndex - 1});
-  }
-  render() {
-    let options = _.map(Locations, function(location, index) {
-      return <option key={index} value={index}>{location}</option>;
-    });
-    return <select className="form-control" value={this.state.option} onChange={this.handleSelect.bind(this)}><option></option>{options}</select>;
-  }
 }
 
 class DataSourceSection extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  handleSelect(ev) {
-    let newSource = ev.target.selectedIndex - 1;
-    newSource = newSource >= 0 ? newSource : null;
+  handleSelect(selected) {
     if (this.props.onChange) {
-      this.props.onChange(newSource);
+      this.props.onChange(selected && selected.value);
     }
   }
   render() {
     let options = _.map(DataSources, function(source, index) {
-      return <option key={index} value={index}>{source.name}</option>;
+      return {value: index, label: source.name};
     });
     return <div className="">
       <label>Data Source</label>
-      <select className="form-control" value={this.props.dataSource || ''} onChange={this.handleSelect.bind(this)}><option>Select data source...</option>{options}</select>
+      <Select value={this.props.dataSource} onChange={this.handleSelect.bind(this)} options={options}/>
     </div>;
   }
 }
 
 class LocationSection extends React.Component {
+  handleSelect(selected) {
+    if (this.props.onChange) {
+      this.props.onChange(selected && selected.value);
+    }
+  }
   render() {
+    let options = _.map(Locations, function(location, index) {
+      return {value: index, label: location};
+    });
     return <div className="">
       <label>Location</label>
-      <LocationPicker/>
+      <Select value={this.props.location} onChange={this.handleSelect.bind(this)} options={options}/>
     </div>;
   }
 }
@@ -129,8 +119,6 @@ class FiltersPanel extends React.Component {
   }
 }
 
-var nextFilterId = 3;
-
 class QueryPanel extends React.Component {
   constructor(props) {
     super(props);
@@ -140,7 +128,8 @@ class QueryPanel extends React.Component {
       location: null,
       dataSource: null,
       filters: [1,2],
-      aggregations: []
+      aggregations: [],
+      nextFilterId: 3
     };
   }
 
@@ -148,10 +137,15 @@ class QueryPanel extends React.Component {
     this.setState({dataSource: dataSource});
   }
 
+  handleLocationSelected(location) {
+    this.setState({location: location});
+  }
+
   handleNewFilter() {
     let filters = this.state.filters;
-    filters.push(nextFilterId++);
-    this.setState({filters: filters});
+    let nextId = this.state.nextFilterId;
+    filters.push(nextId++);
+    this.setState({filters: filters, nextFilterId: nextId});
   }
 
   handleRemoveFilter(filterIndex) {
@@ -168,7 +162,7 @@ class QueryPanel extends React.Component {
     return <div>
       <div className="row">
         <TimePeriodSection/>
-        <LocationSection/>
+        <LocationSection location={this.state.location} onChange={this.handleLocationSelected.bind(this)}/>
         <DataSourceSection dataSource={this.state.dataSource} onChange={this.handleDataSourceSelected.bind(this)}/>
       </div>
       {filtersSection}
