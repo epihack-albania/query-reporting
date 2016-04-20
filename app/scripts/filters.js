@@ -100,12 +100,14 @@ class AggregationsPanel extends React.Component {
     let aggs = _.map(this.props.aggregations, function(agg, index) {
       return <AggregationRow by={agg} key={index} onChange={this.handleChange.bind(this, index)} clearable={aggCount > 1}/>;
     }.bind(this));
+    if (aggs.length < 3) {
+      aggs.push(<AggregationRow key="new" onChange={this.handleAdd.bind(this)} clearable={true}/>);
+    }
     return (
       <div className="col-md-12">
         <fieldset>
           <legend>Aggregations</legend>
           {aggs}
-          <AggregationRow key="new" onChange={this.handleAdd.bind(this)} clearable={true}/>
         </fieldset>
       </div>
     );

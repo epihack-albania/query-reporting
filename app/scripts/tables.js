@@ -66,7 +66,7 @@ class AggregationsTable extends React.Component {
     case 2:
       return this.renderTwoDimensions();
     default:
-      return <div></div>;
+      return this.renderThreeDimensions();
     }
   }
 
@@ -125,6 +125,50 @@ class AggregationsTable extends React.Component {
           {rows}
         </tbody>
       </table>
+    );
+  }
+
+  renderThreeDimensions() {
+    let data = this.props.data.data;
+    let groups = this.props.data.groups;
+
+    let allHeaders = _.map(groups[0], function(colGroup) {
+      let subheads = _.map(groups[1], function(subcolGroup) {
+        return <th key={`${colGroup.key}-${subcolGroup.key}`}>{subcolGroup.label}</th>;
+      });
+      return [<th colSpan={groups[1].length} key={colGroup.key}>{colGroup.label}</th>, subheads];
+    });
+
+    let headers = _.map(allHeaders, _.head);
+    let subheads = _.flattenDeep(_.map(allHeaders, _.tail));
+
+    let rows = _.map(groups[2], function(rowGroup) {
+      let cols = _.map(groups[0], function(colGroup) {
+        let subcols = _.map(groups[1], function(subcolGroup) {
+          let colBucket = data[colGroup.key];
+          let subcolBucket = colBucket.buckets[subcolGroup.key] || {buckets: {}};
+          let rowBucket = subcolBucket.buckets[rowGroup.key] || {count: 0};
+          return <td key={`${colGroup.key}-${subcolGroup.key}`}>{rowBucket.count}</td>;
+        });
+        return subcols;
+      });
+      return (
+          <tr key={rowGroup.key}>
+            <td>{rowGroup.label}</td>
+            {_.flattenDeep(cols)}
+          </tr>
+      );
+    });
+    return (
+        <table className="table">
+          <thead>
+            <tr><th rowSpan="2"></th>{headers}</tr>
+            <tr>{subheads}</tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
     );
   }
 }
