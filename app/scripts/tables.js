@@ -36,8 +36,11 @@ class FilterTable extends React.Component {
         return <th key={field.name}>{field.label}</th>;
       });
     }
+    let filterCount = this.props.rows.length;
+    let totalCount = this.props.totalCount;
     return (
         <div className="col-md-12">
+        <p className="fineprint">Showing {filterCount} of {totalCount} records.</p>
           <table className="table filter-results">
             <thead>
               <tr>
@@ -122,15 +125,16 @@ class QueryPanel extends React.Component {
       }
     }
     return (<div>
-      <div className="row">
-        <TimePeriodSection/>
-        <LocationSection/>
-        <DataSourceSection/>
-      </div>
-      {filtersSection}
-      {filtersTable}
-      {aggregationsSection}
-      {aggregationsTable}
-    </div>);
+              <fieldset>
+                <legend>Filters</legend>
+                <TimePeriodSection/>
+                <LocationSection/>
+                <DataSourceSection/>
+                {filtersSection}
+              </fieldset>
+              {filtersTable}
+              {aggregationsSection}
+              {aggregationsTable}
+            </div>);
   }
 }

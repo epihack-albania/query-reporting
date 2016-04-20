@@ -33,18 +33,21 @@ class LocationSection extends React.Component {
 }
 
 class TimePeriodSection extends React.Component {
+  handleChange(field, evt) {
+    this.props.onPeriodChanged(field, evt.target.value);
+  }
   render() {
     return <div className="">
       <label>Time Period</label>
-      <input type="date" className="form-control"/>
-      <input type="date" className="form-control"/>
+      <input className="form-control" value={this.props.periodStart || ''} onChange={this.handleChange.bind(this, 'periodStart')}/>
+      <input className="form-control" value={this.props.periodEnd || ''} onChange={this.handleChange.bind(this, 'periodEnd')}/>
     </div>;
   }
 }
 
 class FilterRow extends React.Component {
   render() {
-    return <div className="row form-inline filter-row">
+    return <div className="form-inline filter-row">
       <label>Filter #{this.props.name}</label>
       <input className="form-control"/>
       <button className="btn btn-danger" onClick={this.props.onRemove}>Remove filter</button>
@@ -63,15 +66,10 @@ class FiltersPanel extends React.Component {
     let filters = _.map(this.props.filters, function(filter, index) {
       return <FilterRow key={index} name={filter} onRemove={this.handleRemoveFilter.bind(this, index)}/>;
     }.bind(this));
-    return <div className="">
-      <fieldset>
-        <legend>Filters</legend>
-        {filters}
-        <div className="row">
-          <button className="btn btn-primary" onClick={this.handleNewFilter.bind(this)}>Add filter</button>
-        </div>
-      </fieldset>
-    </div>;
+    return (<div className="additional-filters">
+              {filters}
+              <button className="btn btn-primary" onClick={this.handleNewFilter.bind(this)}>Add filter</button>
+            </div>);
   }
 }
 

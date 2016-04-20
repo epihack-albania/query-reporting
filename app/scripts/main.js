@@ -1,13 +1,18 @@
 const initialState = {
+  locations: [],
+  originalData: [],
+
   periodStart: null,
   periodEnd: null,
   location: null,
-  locations: [],
   dataSource: null,
-  filters: [1,2],
-  aggregations: ['Year', 'District', 'Gender'],
+
   nextFilterId: 3,
-  currentData: null
+  filters: [],
+  aggregations: ['Year', 'District', 'Gender'],
+
+  filteredData: [],
+  aggregatedData: []
 };
 
 
@@ -18,6 +23,21 @@ var applyMiddleware = Redux.applyMiddleware;
 var Provider = ReactRedux.Provider;
 var connect = ReactRedux.connect;
 var thunk = ReduxThunk.default;
+
+function TimePeriodState(state) {
+  return {
+    periodStart: state.periodStart,
+    periodEnd: state.periodEnd
+  };
+}
+function TimePeriodDispatch(dispatch) {
+  return {
+    onPeriodChanged: function(field, value) {
+      dispatch({type: 'changePeriod', field: field, value: value});
+    }
+  };
+}
+TimePeriodSection = connect(TimePeriodState, TimePeriodDispatch)(TimePeriodSection);
 
 var DataSourceSectionState = function(state) {
   return {dataSource: state.dataSource};
@@ -60,8 +80,9 @@ FiltersPanel = connect(FiltersPanelState, FiltersPanelDispatch)(FiltersPanel);
 
 var FilterTableState = function(state) {
   return {
-    rows: state.currentData,
-    dataSource: DataSources[state.dataSource]
+    rows: state.filteredData,
+    dataSource: DataSources[state.dataSource],
+    totalCount: state.originalData.length
   };
 };
 FilterTable = connect(FilterTableState)(FilterTable);
@@ -76,7 +97,7 @@ AggregationsPanel = connect(AggregationsPanelState)(AggregationsPanel);
 var QueryPanelState = function(state) {
   return {
     hasDataSource: state.dataSource != null,
-    hasData: state.currentData != null
+    hasData: state.originalData && state.originalData.length > 0
   };
 };
 QueryPanel = connect(QueryPanelState)(QueryPanel);
@@ -113,6 +134,27 @@ function fetchCities() {
   };
 }
 
+function filterRows(state) {
+  return _.filter(state.originalData, function(row) {
+    if (state.periodStart && row.date < state.periodStart) {
+      return false;
+    }
+    if (state.periodEnd && row.date > state.periodEnd) {
+      return false;
+    }
+    if (state.location != undefined) {
+      let locationName = state.locations[state.location].toLocaleLowerCase().slice(0,3);
+      if (!row.location) {
+        return false;
+      }
+      if (locationName != row.location.district.toLocaleLowerCase().slice(0,3)) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
 var reducer = function(state, action) {
   if (state === undefined) {
     return initialState;
@@ -120,6 +162,13 @@ var reducer = function(state, action) {
   var newState = state;
   let newFilters;
   switch(action.type) {
+  case 'changePeriod':
+    if (action.field == 'periodStart') {
+      newState = Object.assign({}, state, {periodStart: action.value});
+    } else {
+      newState = Object.assign({}, state, {periodEnd: action.value});
+    }
+    break;
   case 'selectLocation':
     newState = Object.assign({}, state, {location: action.location});
     break;
@@ -138,12 +187,16 @@ var reducer = function(state, action) {
     break;
   case 'loadDataSource':
     newState = Object.assign({}, state, {dataSource: action.dataSource,
-                                         currentData: action.data});
+                                         originalData: action.data});
     break;
   case 'loadCities':
     newState = Object.assign({}, state, {locations: action.data});
     break;
   }
+
+  let filteredRows = filterRows(newState);
+  newState = Object.assign({}, newState, {filteredData: filteredRows});
+
   return newState;
 };
 
