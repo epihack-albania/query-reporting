@@ -75,14 +75,14 @@ class FiltersPanel extends React.Component {
 
 class AggregationRow extends React.Component {
   handleChange(value) {
-    this.props.onChange(value.value);
+    this.props.onChange(value && value.value);
   }
   render() {
     let aggregationFields = _.map(AggregationTypes, function(by) { return {value: by.toLocaleLowerCase(), label: by}; });
     return (
       <div class="row form-inline aggregation-row">
         <label for="agg1">Aggregate by</label>
-        <Select clearable={false} value={this.props.by} options={aggregationFields} onChange={this.handleChange.bind(this)}/>
+        <Select clearable={!!this.props.clearable} value={this.props.by} options={aggregationFields} onChange={this.handleChange.bind(this)}/>
       </div>
     );
   }
@@ -92,10 +92,17 @@ class AggregationsPanel extends React.Component {
   handleChange(index, value) {
     this.props.onAggregationChanged(index, value);
   }
+  handleAdd(value) {
+    this.props.onAggregationAdded(value);
+  }
   render() {
+    let aggCount = this.props.aggregations.length;
     let aggs = _.map(this.props.aggregations, function(agg, index) {
-      return <AggregationRow by={agg} key={index} onChange={this.handleChange.bind(this, index)}/>;
+      return <AggregationRow by={agg} key={index} onChange={this.handleChange.bind(this, index)} clearable={aggCount > 1}/>;
     }.bind(this));
+    if (aggs.length < 3) {
+      aggs.push(<AggregationRow key="new" onChange={this.handleAdd.bind(this)} clearable={true}/>);
+    }
     return (
       <div className="col-md-12">
         <fieldset>

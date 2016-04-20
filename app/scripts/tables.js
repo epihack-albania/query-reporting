@@ -59,29 +59,117 @@ class FilterTable extends React.Component {
 
 class AggregationsTable extends React.Component {
   render() {
-    let rows;
-    if (this.props.rows) {
-      rows = _.map(this.props.rows, function(bucket, key) {
-        return (
-            <tr key={key}>
-              <td>{bucket.label}</td>
-              <td>{bucket.count}</td>
-            </tr>
-        );
-      });
+    if (!this.props.data) return <div></div>;
+
+    switch(this.props.data.groups.length) {
+    case 1:
+      return this.renderOneDimension();
+    case 2:
+      return this.renderTwoDimensions();
+    default:
+      return this.renderThreeDimensions();
     }
+  }
+
+  renderOneDimension() {
+    let data = this.props.data.data;
+    let rows = _.map(this.props.data.groups[0], function(group) {
+      return (
+          <tr key={group.key}>
+            <td>{group.label}</td>
+            <td>{data[group.key].count}</td>
+          </tr>
+      );
+    });
+    return (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>No. of cases</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
+    );
+  }
+
+  renderTwoDimensions() {
+    let data = this.props.data.data;
+    let groups = this.props.data.groups;
+
+    let headers = _.map(groups[0], function(colGroup) {
+      return <th key={colGroup.key}>{colGroup.label}</th>;
+    });
+
+    let rows = _.map(groups[1], function(rowGroup) {
+      let cols = _.map(groups[0], function(colGroup) {
+        let colBucket = data[colGroup.key];
+        let rowBucket = colBucket.buckets[rowGroup.key];
+        return <td key={colGroup.key}>{rowBucket ? rowBucket.count : 0}</td>;
+      });
+      return (
+          <tr key={rowGroup.key}>
+            <td>{rowGroup.label}</td>
+            {cols}
+          </tr>
+      );
+    });
     return (
       <table className="table">
         <thead>
-          <tr>
-            <th>Group</th>
-            <th>No. of cases</th>
-          </tr>
+          <tr><th></th>{headers}</tr>
         </thead>
         <tbody>
           {rows}
         </tbody>
       </table>
+    );
+  }
+
+  renderThreeDimensions() {
+    let data = this.props.data.data;
+    let groups = this.props.data.groups;
+
+    let allHeaders = _.map(groups[0], function(colGroup) {
+      let subheads = _.map(groups[1], function(subcolGroup) {
+        return <th key={`${colGroup.key}-${subcolGroup.key}`}>{subcolGroup.label}</th>;
+      });
+      return [<th colSpan={groups[1].length} key={colGroup.key}>{colGroup.label}</th>, subheads];
+    });
+
+    let headers = _.map(allHeaders, _.head);
+    let subheads = _.flattenDeep(_.map(allHeaders, _.tail));
+
+    let rows = _.map(groups[2], function(rowGroup) {
+      let cols = _.map(groups[0], function(colGroup) {
+        let subcols = _.map(groups[1], function(subcolGroup) {
+          let colBucket = data[colGroup.key];
+          let subcolBucket = colBucket.buckets[subcolGroup.key] || {buckets: {}};
+          let rowBucket = subcolBucket.buckets[rowGroup.key] || {count: 0};
+          return <td key={`${colGroup.key}-${subcolGroup.key}`}>{rowBucket.count}</td>;
+        });
+        return subcols;
+      });
+      return (
+          <tr key={rowGroup.key}>
+            <td>{rowGroup.label}</td>
+            {_.flattenDeep(cols)}
+          </tr>
+      );
+    });
+    return (
+        <table className="table">
+          <thead>
+            <tr><th rowSpan="2"></th>{headers}</tr>
+            <tr>{subheads}</tr>
+          </thead>
+          <tbody>
+            {rows}
+          </tbody>
+        </table>
     );
   }
 }
@@ -106,7 +194,7 @@ class QueryPanel extends React.Component {
                   <DataSourceSection/>
                   {filtersSection}
                 </div>
-                <div className="col-md-9">
+                <div className="col-md-9 table-container">
                   {filtersTable}
 				 <a href="#" className="export"><span className="glyphicon glyphicon-save"></span> Export to CSV</a>
                 </div>
@@ -115,7 +203,7 @@ class QueryPanel extends React.Component {
                 <div className="col-md-3">
                   {aggregationsSection}
                 </div>
-                <div className="col-md-9">
+                <div className="col-md-9 table-container">
                   {aggregationsTable}
                 </div>
               </div>
