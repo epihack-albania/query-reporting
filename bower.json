@@ -6,7 +6,9 @@
     "modernizr": "~2.8.1",
     "lodash": "~4.11.1",
     "react": "~15.0.1",
-    "react-select": "~1.0.0"
+    "react-select": "~1.0.0",
+    "redux": "https://cdnjs.cloudflare.com/ajax/libs/redux/3.4.0/redux.js",
+    "react-redux": "https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.4.5/react-redux.js"
   },
   "overrides": {
     "bootstrap-sass": {

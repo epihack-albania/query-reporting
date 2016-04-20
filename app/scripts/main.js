@@ -1,3 +1,5 @@
+// Static data
+
 var DataSources = [
   {id: "cchf", name: "CCHF", fields: [
     {name: "date", type: "date"},
@@ -36,14 +38,18 @@ var Locations = [
   "Shkodra"
 ];
 
-class LocationPicker extends React.Component {
-}
+
+// Wire dependencies
+
+var createStore = Redux.createStore;
+var Provider = ReactRedux.Provider;
+var connect = ReactRedux.connect;
+
+// Component definition
 
 class DataSourceSection extends React.Component {
   handleSelect(selected) {
-    if (this.props.onChange) {
-      this.props.onChange(selected && selected.value);
-    }
+    this.props.onSelected(selected && selected.value);
   }
   render() {
     let options = _.map(DataSources, function(source, index) {
@@ -56,11 +62,25 @@ class DataSourceSection extends React.Component {
   }
 }
 
+var DataSourceSectionState = function(state) {
+  return {
+    dataSource: state.dataSource
+  };
+};
+
+var DataSourceSectionDispatch = function(dispatch) {
+  return {
+    onSelected: function(dataSource) {
+      dispatch({type: 'selectDataSource', dataSource: dataSource});
+    }
+  };
+};
+
+DataSourceSection = connect(DataSourceSectionState, DataSourceSectionDispatch)(DataSourceSection);
+
 class LocationSection extends React.Component {
   handleSelect(selected) {
-    if (this.props.onChange) {
-      this.props.onChange(selected && selected.value);
-    }
+    this.props.onSelected(selected && selected.value);
   }
   render() {
     let options = _.map(Locations, function(location, index) {
@@ -72,6 +92,22 @@ class LocationSection extends React.Component {
     </div>;
   }
 }
+
+var LocationSectionState = function(state) {
+  return {
+    location: state.location
+  };
+};
+
+var LocationSectionDispatch = function(dispatch) {
+  return {
+    onSelected: function(location) {
+      dispatch({type: 'selectLocation', location: location});
+    }
+  };
+};
+
+LocationSection = connect(LocationSectionState, LocationSectionDispatch)(LocationSection);
 
 class TimePeriodSection extends React.Component {
   render() {
@@ -92,16 +128,13 @@ class FilterRow extends React.Component {
     </div>;
   }
 }
+
 class FiltersPanel extends React.Component {
   handleNewFilter() {
-    if (this.props.onNewFilter) {
-      this.props.onNewFilter();
-    }
+    this.props.addFilter();
   }
   handleRemoveFilter(index) {
-    if (this.props.onRemoveFilter) {
-      this.props.onRemoveFilter(index);
-    }
+    this.props.removeFilter(index);
   }
   render() {
     let filters = _.map(this.props.filters, function(filter, index) {
@@ -119,55 +152,95 @@ class FiltersPanel extends React.Component {
   }
 }
 
+var FiltersPanelState = function(state) {
+  return {
+    filters: state.filters
+  };
+};
+
+var FiltersPanelDispatch = function(dispatch) {
+  return {
+    addFilter: function() {
+      dispatch({type: 'addFilter'});
+    },
+    removeFilter: function(filterIndex) {
+      dispatch({type: 'removeFilter', index: filterIndex});
+    }
+  };
+};
+
+FiltersPanel = connect(FiltersPanelState, FiltersPanelDispatch)(FiltersPanel);
+
 class QueryPanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      periodStart: null,
-      periodEnd: null,
-      location: null,
-      dataSource: null,
-      filters: [1,2],
-      aggregations: [],
-      nextFilterId: 3
-    };
-  }
-
-  handleDataSourceSelected(dataSource) {
-    this.setState({dataSource: dataSource});
-  }
-
-  handleLocationSelected(location) {
-    this.setState({location: location});
-  }
-
-  handleNewFilter() {
-    let filters = this.state.filters;
-    let nextId = this.state.nextFilterId;
-    filters.push(nextId++);
-    this.setState({filters: filters, nextFilterId: nextId});
-  }
-
-  handleRemoveFilter(filterIndex) {
-    let filters = this.state.filters;
-    filters.splice(filterIndex, 1);
-    this.setState({filters: filters});
   }
 
   render() {
     let filtersSection;
-    if (this.state.dataSource) {
-      filtersSection = <FiltersPanel filters={this.state.filters} onNewFilter={this.handleNewFilter.bind(this)} onRemoveFilter={this.handleRemoveFilter.bind(this)}/>;
+    if (this.props.dataSource) {
+      filtersSection = <FiltersPanel/>;
     }
     return <div>
       <div className="row">
         <TimePeriodSection/>
-        <LocationSection location={this.state.location} onChange={this.handleLocationSelected.bind(this)}/>
-        <DataSourceSection dataSource={this.state.dataSource} onChange={this.handleDataSourceSelected.bind(this)}/>
+        <LocationSection/>
+        <DataSourceSection/>
       </div>
       {filtersSection}
     </div>;
   }
 }
 
-ReactDOM.render(<QueryPanel/>, document.getElementById('app'));
+var QueryPanelState = function(state) {
+  return {
+    dataSource: state.dataSource
+  };
+};
+
+QueryPanel = connect(QueryPanelState)(QueryPanel);
+
+// Business logic using Redux
+
+var initialState = {
+  periodStart: null,
+  periodEnd: null,
+  location: null,
+  dataSource: null,
+  filters: [1,2],
+  aggregations: [],
+  nextFilterId: 3
+};
+
+var reducer = function(state, action) {
+  if (state === undefined) {
+    return initialState;
+  }
+  var newState = state;
+  let newFilters;
+  switch(action.type) {
+  case 'selectLocation':
+    newState = Object.assign({}, state, {location: action.location});
+    break;
+  case 'selectDataSource':
+    newState = Object.assign({}, state, {dataSource: action.dataSource});
+    break;
+  case 'addFilter':
+    let nextId = state.nextFilterId;
+    newFilters = state.filters.concat([nextId]);
+    newState = Object.assign({}, state, {filters: newFilters, nextFilterId: nextId + 1});
+    break;
+  case 'removeFilter':
+    newFilters = state.filters.concat([]);
+    newFilters.splice(action.index, 1);
+    newState = Object.assign({}, state, {filters: newFilters});
+    break;
+  }
+  return newState;
+};
+
+var store = createStore(reducer, initialState);
+
+// ... and render!
+
+ReactDOM.render(<Provider store={store}><QueryPanel/></Provider>, document.getElementById('app'));
