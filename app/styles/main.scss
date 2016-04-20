@@ -108,3 +108,10 @@ body {
     width: 300px;
   }
 }
+
+.filter-results {
+  font-size: 80%;
+  tbody td {
+    white-space: nowrap;
+  }
+}

@@ -1,33 +1,44 @@
 // Static data
 
-var DataSources = [
-  {id: "cchf", name: "CCHF", fields: [
-    {name: "date", type: "date"},
-    {name: "location", type: "location"},
-    {name: "age", type: "number"},
-    {name: "gender", type: "enumeration"},
-    {name: "case_contact", type: "enumeration"},
-    {name: "date_onset", type: "date"},
-    {name: "date_hospitalization_district", type: "date"},
-    {name: "date_hospitalization_central", type: "date"},
-    {name: "district_reporting_date", type: "date"},
-    {name: "iph_reporting_date", type: "date"},
-    {name: "patient_status", type: "enumeration"},
-    {name: "epi_investigation_date", type: "date"}
-  ]},
-  {id: "brucelosis", name: "Brucellosis", fields: [
-  ]},
-  {id: "hbv_hbc", name: "HBV and HCV", fields: [
-  ]},
-  {id: "field_ticks", name: "Field Ticks", fields: [
-  ]},
-  {id: "sand_flies", name: "Sand flies", fields: [
-  ]},
-  {id: "mosquitoes", name: "Mosquitoes", fields: [
-  ]},
-  {id: "hanta", name: "Hanta Virus", fields: [
-  ]}
-];
+var DataSources = {
+  cchf: {
+    label: "CCHF",
+    url: "/data/cchf.json",
+    fields: [
+      {name: "date", label: "Date of onset", type: "date"},
+      {name: "location", label: "Location", type: "location"},
+      {name: "age", label: "Age", type: "number"},
+      {name: "gender", label: "Gender", type: "enumeration"},
+      {name: "case_contact", label: "Case type", type: "enumeration"},
+      {name: "date_hospitalization_district", label: "Date of hospitalization in district", type: "date"},
+      {name: "date_hospitalization_central", label: "Date of hospitalization in central", type: "date"},
+      {name: "district_reporting_date", label: "Date of reporting for district", type: "date"},
+      {name: "iph_reporting_date", label: "Date of reporting for IPH", type: "date"},
+      {name: "patient_status", label: "Patient status", type: "enumeration"},
+      {name: "epi_investigation_date", label: "EPI investigation", type: "date"}
+    ]
+  },
+  brucellosis: {
+    label: "Brucellosis",
+    url: "/data/brucellosis.json",
+    fields: [
+      {name: "date", label: "Date of onset", type: "date"},
+      {name: "location", label: "Location", type: "location"},
+      {name: "age", label: "Age", type: "number"},
+      {name: "gender", label: "Gender", type: "enumeration"},
+      {name: "case_contact", label: "Case type", type: "enumeration"},
+      {name: "date_hospitalization_district", label: "Date of hospitalization in district", type: "date"},
+      {name: "date_hospitalization_central", label: "Date of hospitalization in central", type: "date"},
+      {name: "district_reporting_date", label: "Date of reporting for district", type: "date"},
+      {name: "iph_reporting_date", label: "Date of reporting for IPH", type: "date"},
+      {name: "patient_status", label: "Patient status", type: "enumeration"},
+      {name: "epi_investigation_date", label: "EPI investigation", type: "date"}
+    ]
+  },
+  hbv_hbc: {
+    label: "HBV and HCV", fields: []
+  }
+};
 
 var Locations = [
   "Tirana",
@@ -42,8 +53,10 @@ var Locations = [
 // Wire dependencies
 
 var createStore = Redux.createStore;
+var applyMiddleware = Redux.applyMiddleware;
 var Provider = ReactRedux.Provider;
 var connect = ReactRedux.connect;
+var thunk = ReduxThunk.default;
 
 // Component definition
 
@@ -52,8 +65,8 @@ class DataSourceSection extends React.Component {
     this.props.onSelected(selected && selected.value);
   }
   render() {
-    let options = _.map(DataSources, function(source, index) {
-      return {value: index, label: source.name};
+    let options = _.map(DataSources, function(source, sourceId) {
+      return {value: sourceId, label: source.label};
     });
     return <div className="">
       <label>Data Source</label>
@@ -71,7 +84,7 @@ var DataSourceSectionState = function(state) {
 var DataSourceSectionDispatch = function(dispatch) {
   return {
     onSelected: function(dataSource) {
-      dispatch({type: 'selectDataSource', dataSource: dataSource});
+      dispatch(fetchDataSource(dataSource));
     }
   };
 };
@@ -171,15 +184,78 @@ var FiltersPanelDispatch = function(dispatch) {
 
 FiltersPanel = connect(FiltersPanelState, FiltersPanelDispatch)(FiltersPanel);
 
+function displayValue(field, value) {
+  if (!value) return '';
+  switch (field.type) {
+  case 'location':
+    return `${value.district}, ${value.municipality}, ${value.village}`;
+  default:
+    return value.toString();
+  }
+}
+
+class FilterTableRow extends React.Component {
+  render() {
+    let cols;
+    cols = _.map(this.props.fields, function(field) {
+      let value = this.props.data[field.name];
+      value = displayValue(field, value);
+      return <td key={field.name}>{value}</td>;
+    }.bind(this));
+    return <tr>{cols}</tr>;
+  }
+}
+
+class FilterTable extends React.Component {
+  render() {
+    let rows, headers;
+    if (this.props.rows) {
+      let fields = this.props.dataSource.fields;
+      rows = _.map(this.props.rows, function(row, index) {
+        return <FilterTableRow data={row} fields={fields} key={index}/>;
+      });
+      headers = _.map(fields, function(field) {
+        return <th key={field.name}>{field.label}</th>;
+      });
+    }
+    return (
+        <div className="col-md-12">
+          <table className="table filter-results">
+            <thead>
+              <tr>
+                {headers}
+              </tr>
+            </thead>
+            <tbody>
+              {rows}
+            </tbody>
+          </table>
+        </div>
+    );
+  }
+}
+
+var FilterTableState = function(state) {
+  return {
+    rows: state.currentData,
+    dataSource: DataSources[state.dataSource]
+  };
+};
+
+FilterTable = connect(FilterTableState)(FilterTable);
+
 class QueryPanel extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    let filtersSection;
-    if (this.props.dataSource) {
+    let filtersSection, filtersTable;
+    if (this.props.hasDataSource) {
       filtersSection = <FiltersPanel/>;
+      if (this.props.hasData) {
+        filtersTable = <FilterTable/>;
+      }
     }
     return <div>
       <div className="row">
@@ -188,28 +264,48 @@ class QueryPanel extends React.Component {
         <DataSourceSection/>
       </div>
       {filtersSection}
+      {filtersTable}
     </div>;
   }
 }
 
 var QueryPanelState = function(state) {
   return {
-    dataSource: state.dataSource
+    hasDataSource: state.dataSource != null,
+    hasData: state.currentData != null
   };
 };
 
 QueryPanel = connect(QueryPanelState)(QueryPanel);
 
+
+
 // Business logic using Redux
 
-var initialState = {
+function fetchDataSource(dataSource) {
+  if (dataSource) {
+    let dsDef = DataSources[dataSource];
+    return function(dispatch) {
+      return fetch(dsDef.url).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        dispatch({type: 'loadDataSource', dataSource: dataSource, data: data});
+      });
+    };
+  } else {
+    return {type: 'loadDataSource', dataSource: dataSource, data: null};
+  }
+}
+
+const initialState = {
   periodStart: null,
   periodEnd: null,
   location: null,
   dataSource: null,
   filters: [1,2],
   aggregations: [],
-  nextFilterId: 3
+  nextFilterId: 3,
+  currentData: null
 };
 
 var reducer = function(state, action) {
@@ -235,11 +331,17 @@ var reducer = function(state, action) {
     newFilters.splice(action.index, 1);
     newState = Object.assign({}, state, {filters: newFilters});
     break;
+  case 'loadDataSource':
+    newState = Object.assign({}, state, {dataSource: action.dataSource,
+                                         currentData: action.data});
+    break;
   }
   return newState;
 };
 
-var store = createStore(reducer, initialState);
+var store = createStore(reducer, applyMiddleware(thunk));
+
+store.dispatch(fetchDataSource('cchf'));
 
 // ... and render!
 
