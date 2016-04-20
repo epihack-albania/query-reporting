@@ -96,6 +96,9 @@ function AggregationsPanelDispatch(dispatch) {
   return {
     onAggregationChanged: function(index, value) {
       dispatch({type: 'changeAggregation', index: index, by: value});
+    },
+    onAggregationAdded: function(value) {
+      dispatch({type: 'addAggregation', by: value});
     }
   };
 }
@@ -103,7 +106,7 @@ AggregationsPanel = connect(AggregationsPanelState, AggregationsPanelDispatch)(A
 
 function AggregationsTableState(state) {
   return {
-    rows: state.aggregatedData
+    data: state.aggregatedData
   };
 }
 AggregationsTable = connect(AggregationsTableState)(AggregationsTable);
@@ -169,7 +172,7 @@ function filterRows(state, data) {
   });
 }
 
-function getBucket(row, by) {
+function getGroup(row, by) {
   switch (by) {
   case 'year':
     if (row.date) {
@@ -197,16 +200,36 @@ function aggregateRows(state, data) {
     return [];
   }
 
-  var buckets = {};
-  _.each(data, function(row) {
-    let b = getBucket(row, state.aggregations[0]);
-    if (b != null) {
-      let bucket = buckets[b.key] || {count: 0, label: b.label};
-      bucket.count++;
-      buckets[b.key] = bucket;
-    }
+  let groups = _.map(state.aggregations, function(agg) {
+    let groups = {};
+    _.each(data, function(row) {
+      let group = getGroup(row, agg);
+      if (group && !groups.hasOwnProperty(group.key)) {
+        groups[group.key] = {key: group.key, label: group.label};
+      }
+    });
+    groups = _.map(groups, _.identity);
+    return _.sortBy(groups, 'label');
   });
-  return buckets;
+
+  function addToBucket(buckets, aggIdx, row) {
+    let agg = state.aggregations[aggIdx];
+    if (!agg) return;
+    let group = getGroup(row, agg);
+    if (group != null) {
+      let bucket = buckets[group.key] || {count: 0, buckets: {}};
+      bucket.count++;
+      addToBucket(bucket.buckets, aggIdx+1, row);
+      buckets[group.key] = bucket;
+    }
+  }
+
+  let buckets = {};
+  _.each(data, function(row) {
+    addToBucket(buckets, 0, row);
+  });
+
+  return {groups: groups, data: buckets};
 }
 
 var reducer = function(state, action) {
@@ -214,7 +237,7 @@ var reducer = function(state, action) {
     return initialState;
   }
   var newState = state;
-  let newFilters;
+  let newFilters, newAggs;
   switch(action.type) {
   case 'changePeriod':
     if (action.field == 'periodStart') {
@@ -247,8 +270,16 @@ var reducer = function(state, action) {
     newState = Object.assign({}, state, {locations: action.data});
     break;
   case 'changeAggregation':
-    let newAggs = state.aggregations.concat([]);
-    newAggs[action.index] = action.by;
+    newAggs = state.aggregations.concat([]);
+    if (action.by) {
+      newAggs[action.index] = action.by;
+    } else {
+      newAggs.splice(action.index, 1);
+    }
+    newState = Object.assign({}, state, {aggregations: newAggs});
+    break;
+  case 'addAggregation':
+    newAggs = state.aggregations.concat([action.by]);
     newState = Object.assign({}, state, {aggregations: newAggs});
     break;
   }
