@@ -1,6 +1,6 @@
 // Static data
 
-var DataSources = {
+const DataSources = {
   cchf: {
     label: "CCHF",
     url: "data/cchf.json",
@@ -30,8 +30,22 @@ var DataSources = {
       {name: "date_hospitalization_district", label: "Date of hospitalization in district", type: "date"},
       {name: "date_hospitalization_central", label: "Date of hospitalization in central", type: "date"}
     ]
-  },
-  hbv_hbc: {
-    label: "HBV and HCV", fields: []
   }
+  // ,
+  // hbv_hbc: {
+  //   label: "HBV and HCV", fields: []
+  // }
 };
+
+const AggregationTypes = [
+  'Year',
+  // 'Quarter',
+  // 'Month',
+  // 'Week',
+  // 'Day',
+  'District'
+  // 'Municipality',
+  // 'Village',
+  // 'Age',
+  // 'Gender'
+];

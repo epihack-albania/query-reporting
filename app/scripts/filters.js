@@ -74,22 +74,28 @@ class FiltersPanel extends React.Component {
 }
 
 class AggregationRow extends React.Component {
+  handleChange(value) {
+    this.props.onChange(value.value);
+  }
   render() {
-    let aggregationFields = _.map(['Year', 'Quarter', 'Month', 'Week', 'Day', 'District', 'Municipality', 'Village', 'Age', 'Gender'], function(by) { return {value: by, label: by}; });
+    let aggregationFields = _.map(AggregationTypes, function(by) { return {value: by.toLocaleLowerCase(), label: by}; });
     return (
       <div class="row form-inline aggregation-row">
         <label for="agg1">Aggregate by</label>
-        <Select value={this.props.by} options={aggregationFields}/>
+        <Select clearable={false} value={this.props.by} options={aggregationFields} onChange={this.handleChange.bind(this)}/>
       </div>
     );
   }
 }
 
 class AggregationsPanel extends React.Component {
+  handleChange(index, value) {
+    this.props.onAggregationChanged(index, value);
+  }
   render() {
     let aggs = _.map(this.props.aggregations, function(agg, index) {
-      return <AggregationRow by={agg} key={index}/>;
-    });
+      return <AggregationRow by={agg} key={index} onChange={this.handleChange.bind(this, index)}/>;
+    }.bind(this));
     return (
       <div className="col-md-12">
         <fieldset>

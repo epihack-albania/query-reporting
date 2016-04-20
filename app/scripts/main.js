@@ -9,7 +9,7 @@ const initialState = {
 
   nextFilterId: 3,
   filters: [],
-  aggregations: ['Year', 'District', 'Gender'],
+  aggregations: ['year'],
 
   filteredData: [],
   aggregatedData: []
@@ -92,7 +92,21 @@ function AggregationsPanelState(state) {
     aggregations: state.aggregations
   };
 }
-AggregationsPanel = connect(AggregationsPanelState)(AggregationsPanel);
+function AggregationsPanelDispatch(dispatch) {
+  return {
+    onAggregationChanged: function(index, value) {
+      dispatch({type: 'changeAggregation', index: index, by: value});
+    }
+  };
+}
+AggregationsPanel = connect(AggregationsPanelState, AggregationsPanelDispatch)(AggregationsPanel);
+
+function AggregationsTableState(state) {
+  return {
+    rows: state.aggregatedData
+  };
+}
+AggregationsTable = connect(AggregationsTableState)(AggregationsTable);
 
 var QueryPanelState = function(state) {
   return {
@@ -134,8 +148,8 @@ function fetchCities() {
   };
 }
 
-function filterRows(state) {
-  return _.filter(state.originalData, function(row) {
+function filterRows(state, data) {
+  return _.filter(data, function(row) {
     if (state.periodStart && row.date < state.periodStart) {
       return false;
     }
@@ -153,6 +167,46 @@ function filterRows(state) {
     }
     return true;
   });
+}
+
+function getBucket(row, by) {
+  switch (by) {
+  case 'year':
+    if (row.date) {
+      let year = row.date.slice(0,4);
+      return {key: year, label: year};
+    } else {
+      return null;
+    }
+  case 'district':
+    if (row.location) {
+      let label = row.location.district;
+      label = label[0].toLocaleUpperCase() + label.slice(1).toLocaleLowerCase();
+      let key = label.slice(0,3).toLocaleLowerCase();
+      return {key: key, label: label};
+    } else {
+      return null;
+    }
+  default:
+    return null;
+  }
+}
+
+function aggregateRows(state, data) {
+  if (state.aggregations.length <= 0) {
+    return [];
+  }
+
+  var buckets = {};
+  _.each(data, function(row) {
+    let b = getBucket(row, state.aggregations[0]);
+    if (b != null) {
+      let bucket = buckets[b.key] || {count: 0, label: b.label};
+      bucket.count++;
+      buckets[b.key] = bucket;
+    }
+  });
+  return buckets;
 }
 
 var reducer = function(state, action) {
@@ -192,10 +246,18 @@ var reducer = function(state, action) {
   case 'loadCities':
     newState = Object.assign({}, state, {locations: action.data});
     break;
+  case 'changeAggregation':
+    let newAggs = state.aggregations.concat([]);
+    newAggs[action.index] = action.by;
+    newState = Object.assign({}, state, {aggregations: newAggs});
+    break;
   }
 
-  let filteredRows = filterRows(newState);
+  let filteredRows = filterRows(newState, newState.originalData);
   newState = Object.assign({}, newState, {filteredData: filteredRows});
+
+  let aggregatedRows = aggregateRows(newState, filteredRows);
+  newState = Object.assign({}, newState, {aggregatedData: aggregatedRows});
 
   return newState;
 };

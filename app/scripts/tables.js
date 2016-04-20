@@ -58,57 +58,29 @@ class FilterTable extends React.Component {
 
 class AggregationsTable extends React.Component {
   render() {
+    let rows;
+    if (this.props.rows) {
+      rows = _.map(this.props.rows, function(bucket, key) {
+        return (
+            <tr key={key}>
+              <td>{bucket.label}</td>
+              <td>{bucket.count}</td>
+            </tr>
+        );
+      });
+    }
     return (
-      <div className="col-md-12">
-        <table className="table">
-          <thead>
-            <tr>
-              <th colspan="2" rowspan="2">Number of cases</th>
-              <th colspan="2">2013</th>
-              <th colspan="2">2014</th>
-              <th colspan="2">2015</th>
-            </tr>
-            <tr>
-              <th>Tirana</th>
-              <th>Saranda</th>
-              <th>Tirana</th>
-              <th>Saranda</th>
-              <th>Tirana</th>
-              <th>Saranda</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td rowspan="3">Gender</td>
-              <td>Male</td>
-              <td>10</td>
-              <td>35</td>
-              <td>24</td>
-              <td>42</td>
-              <td>33</td>
-              <td>15</td>
-            </tr>
-            <tr>
-              <td>Female</td>
-              <td>10</td>
-              <td>35</td>
-              <td>24</td>
-              <td>42</td>
-              <td>33</td>
-              <td>15</td>
-            </tr>
-            <tr>
-              <td>Undecided</td>
-              <td>10</td>
-              <td>35</td>
-              <td>24</td>
-              <td>42</td>
-              <td>33</td>
-              <td>15</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>No. of cases</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows}
+        </tbody>
+      </table>
     );
   }
 }
@@ -125,16 +97,26 @@ class QueryPanel extends React.Component {
       }
     }
     return (<div>
-              <fieldset>
-                <legend>Filters</legend>
-                <TimePeriodSection/>
-                <LocationSection/>
-                <DataSourceSection/>
-                {filtersSection}
-              </fieldset>
-              {filtersTable}
-              {aggregationsSection}
-              {aggregationsTable}
+              <div className="row">
+                <div className="col-md-3">
+                  <legend>Filters</legend>
+                  <TimePeriodSection/>
+                  <LocationSection/>
+                  <DataSourceSection/>
+                  {filtersSection}
+                </div>
+                <div className="col-md-9">
+                  {filtersTable}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-3">
+                  {aggregationsSection}
+                </div>
+                <div className="col-md-9">
+                  {aggregationsTable}
+                </div>
+              </div>
             </div>);
   }
 }
