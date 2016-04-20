@@ -43,9 +43,9 @@ const AggregationTypes = [
   // 'Month',
   // 'Week',
   // 'Day',
-  'District'
+  'District',
   // 'Municipality',
   // 'Village',
-  // 'Age',
-  // 'Gender'
+  'Age',
+  'Gender'
 ];

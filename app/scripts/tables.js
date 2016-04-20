@@ -149,7 +149,7 @@ class QueryPanel extends React.Component {
                   <DataSourceSection/>
                   {filtersSection}
                 </div>
-                <div className="col-md-9">
+                <div className="col-md-9 table-container">
                   {filtersTable}
                 </div>
               </div>
@@ -157,7 +157,7 @@ class QueryPanel extends React.Component {
                 <div className="col-md-3">
                   {aggregationsSection}
                 </div>
-                <div className="col-md-9">
+                <div className="col-md-9 table-container">
                   {aggregationsTable}
                 </div>
               </div>

@@ -123,3 +123,9 @@ body {
 #app {
   padding: 0 20px;
 }
+
+.table-container {
+  max-height: 600px;
+  overflow: auto;
+  margin-bottom: 2em;
+}
