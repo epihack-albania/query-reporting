@@ -110,8 +110,12 @@ body {
 }
 
 .filter-results {
-  font-size: 80%;
+  font-size: 90%;
   tbody td {
     white-space: nowrap;
   }
+}
+
+#app {
+  padding: 0 20px;
 }

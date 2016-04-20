@@ -289,7 +289,8 @@ function fetchDataSource(dataSource) {
       return fetch(dsDef.url).then(function(response) {
         return response.json();
       }).then(function(data) {
-        dispatch({type: 'loadDataSource', dataSource: dataSource, data: data});
+        let sortedData = _.sortBy(data, 'date');
+        dispatch({type: 'loadDataSource', dataSource: dataSource, data: sortedData});
       });
     };
   } else {
