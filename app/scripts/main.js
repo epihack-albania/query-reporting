@@ -3,7 +3,7 @@
 var DataSources = {
   cchf: {
     label: "CCHF",
-    url: "/data/cchf.json",
+    url: "data/cchf.json",
     fields: [
       {name: "date", label: "Date of onset", type: "date"},
       {name: "location", label: "Location", type: "location"},
@@ -20,7 +20,7 @@ var DataSources = {
   },
   brucellosis: {
     label: "Brucellosis",
-    url: "/data/brucellosis.json",
+    url: "data/brucellosis.json",
     fields: [
       {name: "date", label: "Date of onset", type: "date"},
       {name: "location", label: "Location", type: "location"},
@@ -288,7 +288,7 @@ function fetchDataSource(dataSource) {
 
 function fetchCities() {
   return function(dispatch) {
-    return fetch('/data/cities.json').then(function(response) {
+    return fetch('data/cities.json').then(function(response) {
       return response.json();
     }).then(function(data) {
       dispatch({type: 'loadCities', data: _.sortBy(data, _.identity)});
