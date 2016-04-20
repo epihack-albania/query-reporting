@@ -41,6 +41,7 @@ class FilterTable extends React.Component {
     return (
         <div className="col-md-12">
         <p className="fineprint">Showing {filterCount} of {totalCount} records.</p>
+		
           <table className="table filter-results">
             <thead>
               <tr>
@@ -107,8 +108,9 @@ class QueryPanel extends React.Component {
                 </div>
                 <div className="col-md-9">
                   {filtersTable}
+				 <a href="#" className="export"><span className="glyphicon glyphicon-save"></span> Export to CSV</a>
                 </div>
-              </div>
+			</div>
               <div className="row">
                 <div className="col-md-3">
                   {aggregationsSection}
