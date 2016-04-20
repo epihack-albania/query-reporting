@@ -40,7 +40,10 @@ class FilterTable extends React.Component {
     let totalCount = this.props.totalCount;
     return (
         <div className="col-md-12">
-          <p>Showing {filterCount} of {totalCount} records.</p>
+          <p>
+            Showing {filterCount} of {totalCount} records.
+            <a href="#" className="export"><span className="glyphicon glyphicon-save"></span> Export to CSV</a>
+          </p>
           <table className="table filter-results">
             <thead>
               <tr>
@@ -195,9 +198,8 @@ class QueryPanel extends React.Component {
                 </div>
                 <div className="col-md-9 table-container">
                   {filtersTable}
-				 <a href="#" className="export"><span className="glyphicon glyphicon-save"></span> Export to CSV</a>
                 </div>
-			</div>
+              </div>
               <div className="row">
                 <div className="col-md-3">
                   {aggregationsSection}

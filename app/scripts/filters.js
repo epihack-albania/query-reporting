@@ -49,6 +49,9 @@ class FilterRow extends React.Component {
   handleChange(field, evt) {
     this.props.onChange(field, evt.target.value);
   }
+  handleSelectChange(selected) {
+    this.props.onChange('options', _.map(selected, 'value'));
+  }
 
   render() {
     let filterControl;
@@ -59,8 +62,10 @@ class FilterRow extends React.Component {
                        <input key="to" value={this.props.data.to} onChange={this.handleChange.bind(this, 'to')}/>];
       break;
     case 'enumeration':
-      let enumOptions = [];
-      filterControl = <Select options={enumOptions} multi="true"/>;
+      let enumOptions = _.map(this.props.data.enumOptions, function(opt) {
+        return {value: opt, label: opt};
+      });
+      filterControl = <Select options={enumOptions} multi={true} value={this.props.data.options} onChange={this.handleSelectChange.bind(this)} />;
       break;
     }
     return <div className="form-inline filter-row">

@@ -173,6 +173,10 @@ function filterApplies(filter, row) {
       return false;
     }
     break;
+  case 'enumeration':
+    if (filter.options.length > 0) {
+      return _.includes(filter.options, value);
+    }
   }
   return true;
 }
@@ -315,6 +319,14 @@ function aggregateRows(state, data) {
   return {groups: groups, data: buckets};
 }
 
+function getEnumOptions(field, data) {
+  let values = {};
+  _.each(data, function(row) {
+    values[row[field]] = 1;
+  });
+  return _.keys(values);
+}
+
 var reducer = function(state, action) {
   if (state === undefined) {
     return initialState;
@@ -337,7 +349,11 @@ var reducer = function(state, action) {
     break;
   case 'addFilter':
     let field = _.find(DataSources[state.dataSource].fields, ['name', action.name]);
-    newFilters = state.filters.concat([_.extend({from: '', to: ''}, field)]);
+    let enumOptions;
+    if (field.type == 'enumeration') {
+      enumOptions = getEnumOptions(field.name, state.originalData);
+    }
+    newFilters = state.filters.concat([_.extend({from: '', to: '', options: [], enumOptions: enumOptions}, field)]);
     newState = Object.assign({}, state, {filters: newFilters});
     break;
   case 'removeFilter':
@@ -434,7 +450,7 @@ $(document).ready(function () {
     }
 
     // This must be a hyperlink
-    $(".export").on('click', function (event) {
+    $("body").on('click', '.export', function (event) {
         // CSV
         exportTableToCSV.apply(this, [$('table.filter-results'), 'export.csv']);
         
