@@ -46,29 +46,58 @@ class TimePeriodSection extends React.Component {
 }
 
 class FilterRow extends React.Component {
+  handleChange(field, evt) {
+    this.props.onChange(field, evt.target.value);
+  }
+
   render() {
+    let filterControl;
+    switch(this.props.data.type) {
+    case 'number':
+    case 'date':
+      filterControl = [<input key="from" value={this.props.data.from} onChange={this.handleChange.bind(this, 'from')}/>,
+                       <input key="to" value={this.props.data.to} onChange={this.handleChange.bind(this, 'to')}/>];
+      break;
+    case 'enumeration':
+      let enumOptions = [];
+      filterControl = <Select options={enumOptions} multi="true"/>;
+      break;
+    }
     return <div className="form-inline filter-row">
-      <label>Filter #{this.props.name}</label>
-      <input className="form-control"/>
-      <button className="btn btn-danger" onClick={this.props.onRemove}>Remove filter</button>
+      <label>
+      <button className="btn btn-danger btn-xs" onClick={this.props.onRemove}>
+      <span className="glyphicon glyphicon-remove"></span></button>
+      {this.props.name}</label>
+      {filterControl}
     </div>;
   }
 }
 
 class FiltersPanel extends React.Component {
-  handleNewFilter() {
-    this.props.addFilter();
+  handleNewFilter(field) {
+    this.props.addFilter(field.value);
   }
   handleRemoveFilter(index) {
     this.props.removeFilter(index);
   }
+  handleFilterChange(index, field, value) {
+    this.props.changeFilter(index, field, value);
+  }
   render() {
     let filters = _.map(this.props.filters, function(filter, index) {
-      return <FilterRow key={index} name={filter} onRemove={this.handleRemoveFilter.bind(this, index)}/>;
+      return <FilterRow key={index} name={filter.label} data={filter}
+                        onChange={this.handleFilterChange.bind(this, index)}
+                        onRemove={this.handleRemoveFilter.bind(this, index)}/>;
     }.bind(this));
+    let filterableFields = _.filter(this.props.fields, function(field) {
+      return field.name != 'date' && field.name != 'location';
+    });
+    let fields = _.map(filterableFields, function(field, index) {
+      return {value: field.name, label: field.label};
+    });
     return (<div className="additional-filters">
               {filters}
-              <button className="btn btn-primary" onClick={this.handleNewFilter.bind(this)}>Add filter</button>
+              <Select className="add-filter" options={fields} placeholder="Add new filter..." onChange={this.handleNewFilter.bind(this)}/>
             </div>);
   }
 }
@@ -81,7 +110,6 @@ class AggregationRow extends React.Component {
     let aggregationFields = _.map(AggregationTypes, function(by) { return {value: by.toLocaleLowerCase(), label: by}; });
     return (
       <div class="row form-inline aggregation-row">
-        <label for="agg1">Aggregate by</label>
         <Select clearable={!!this.props.clearable} value={this.props.by} options={aggregationFields} onChange={this.handleChange.bind(this)}/>
       </div>
     );
@@ -107,6 +135,7 @@ class AggregationsPanel extends React.Component {
       <div className="col-md-12">
         <fieldset>
           <legend>Aggregations</legend>
+          <p>Group records by</p>
           {aggs}
         </fieldset>
       </div>

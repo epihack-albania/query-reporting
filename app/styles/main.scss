@@ -99,7 +99,13 @@ body {
 .filter-row {
   padding: 5px 0;
   label {
-    width: 100px;
+    display: block;
+  }
+  input {
+    width: 50%;
+  }
+  button {
+    float: right;
   }
 }
 
@@ -139,4 +145,16 @@ a.export, a.export:visited {
   overflow: auto;
   margin-bottom: 2em;
 
+}
+
+.add-filter {
+  margin-top: 20px;
+  .Select-control {
+    background-color: #337ab7;
+    color: white;
+  }
+  .Select-placeholder, .Select-arrow {
+    color: white;
+    border-color: white transparent transparent;
+  }
 }

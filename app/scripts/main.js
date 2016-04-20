@@ -7,7 +7,6 @@ const initialState = {
   location: null,
   dataSource: null,
 
-  nextFilterId: 3,
   filters: [],
   aggregations: ['year'],
 
@@ -64,15 +63,18 @@ var LocationSectionDispatch = function(dispatch) {
 LocationSection = connect(LocationSectionState, LocationSectionDispatch)(LocationSection);
 
 var FiltersPanelState = function(state) {
-  return {filters: state.filters};
+  return {filters: state.filters, fields: DataSources[state.dataSource].fields};
 };
 var FiltersPanelDispatch = function(dispatch) {
   return {
-    addFilter: function() {
-      dispatch({type: 'addFilter'});
+    addFilter: function(fieldName) {
+      dispatch({type: 'addFilter', name: fieldName});
     },
     removeFilter: function(filterIndex) {
       dispatch({type: 'removeFilter', index: filterIndex});
+    },
+    changeFilter: function(filterIndex, field, value) {
+      dispatch({type: 'changeFilter', index: filterIndex, field: field, value: value});
     }
   };
 };
@@ -151,6 +153,30 @@ function fetchCities() {
   };
 }
 
+function filterApplies(filter, row) {
+  let value = row[filter.name];
+
+  switch(filter.type) {
+  case 'number':
+    if (filter.from && parseInt(value) < parseInt(filter.from)) {
+      return false;
+    }
+    if (filter.to && parseInt(value) > parseInt(filter.to)) {
+      return false;
+    }
+    break;
+  case 'date':
+    if (filter.from && value < filter.from) {
+      return false;
+    }
+    if (filter.to && value > filter.to) {
+      return false;
+    }
+    break;
+  }
+  return true;
+}
+
 function filterRows(state, data) {
   return _.filter(data, function(row) {
     if (state.periodStart && row.date < state.periodStart) {
@@ -168,7 +194,9 @@ function filterRows(state, data) {
         return false;
       }
     }
-    return true;
+    return _.every(state.filters, function(filter) {
+      return filterApplies(filter, row);
+    });
   });
 }
 
@@ -308,13 +336,18 @@ var reducer = function(state, action) {
     newState = Object.assign({}, state, {dataSource: action.dataSource});
     break;
   case 'addFilter':
-    let nextId = state.nextFilterId;
-    newFilters = state.filters.concat([nextId]);
-    newState = Object.assign({}, state, {filters: newFilters, nextFilterId: nextId + 1});
+    let field = _.find(DataSources[state.dataSource].fields, ['name', action.name]);
+    newFilters = state.filters.concat([_.extend({from: '', to: ''}, field)]);
+    newState = Object.assign({}, state, {filters: newFilters});
     break;
   case 'removeFilter':
     newFilters = state.filters.concat([]);
     newFilters.splice(action.index, 1);
+    newState = Object.assign({}, state, {filters: newFilters});
+    break;
+  case 'changeFilter':
+    newFilters = state.filters.concat([]);
+    newFilters[action.index][action.field] = action.value;
     newState = Object.assign({}, state, {filters: newFilters});
     break;
   case 'loadDataSource':
@@ -409,5 +442,3 @@ $(document).ready(function () {
         // We actually need this to be a typical hyperlink
     });
 });
-	
-  

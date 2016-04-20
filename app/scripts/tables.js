@@ -40,8 +40,7 @@ class FilterTable extends React.Component {
     let totalCount = this.props.totalCount;
     return (
         <div className="col-md-12">
-        <p className="fineprint">Showing {filterCount} of {totalCount} records.</p>
-		
+          <p>Showing {filterCount} of {totalCount} records.</p>
           <table className="table filter-results">
             <thead>
               <tr>
