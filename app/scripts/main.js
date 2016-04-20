@@ -28,11 +28,7 @@ var DataSources = {
       {name: "gender", label: "Gender", type: "enumeration"},
       {name: "case_contact", label: "Case type", type: "enumeration"},
       {name: "date_hospitalization_district", label: "Date of hospitalization in district", type: "date"},
-      {name: "date_hospitalization_central", label: "Date of hospitalization in central", type: "date"},
-      {name: "district_reporting_date", label: "Date of reporting for district", type: "date"},
-      {name: "iph_reporting_date", label: "Date of reporting for IPH", type: "date"},
-      {name: "patient_status", label: "Patient status", type: "enumeration"},
-      {name: "epi_investigation_date", label: "EPI investigation", type: "date"}
+      {name: "date_hospitalization_central", label: "Date of hospitalization in central", type: "date"}
     ]
   },
   hbv_hbc: {
@@ -96,7 +92,7 @@ class LocationSection extends React.Component {
     this.props.onSelected(selected && selected.value);
   }
   render() {
-    let options = _.map(Locations, function(location, index) {
+    let options = _.map(this.props.locations, function(location, index) {
       return {value: index, label: location};
     });
     return <div className="">
@@ -108,7 +104,8 @@ class LocationSection extends React.Component {
 
 var LocationSectionState = function(state) {
   return {
-    location: state.location
+    location: state.location,
+    locations: state.locations
   };
 };
 
@@ -298,10 +295,21 @@ function fetchDataSource(dataSource) {
   }
 }
 
+function fetchCities() {
+  return function(dispatch) {
+    return fetch('/data/cities.json').then(function(response) {
+      return response.json();
+    }).then(function(data) {
+      dispatch({type: 'loadCities', data: _.sortBy(data, _.identity)});
+    });
+  };
+}
+
 const initialState = {
   periodStart: null,
   periodEnd: null,
   location: null,
+  locations: [],
   dataSource: null,
   filters: [1,2],
   aggregations: [],
@@ -336,6 +344,9 @@ var reducer = function(state, action) {
     newState = Object.assign({}, state, {dataSource: action.dataSource,
                                          currentData: action.data});
     break;
+  case 'loadCities':
+    newState = Object.assign({}, state, {locations: action.data});
+    break;
   }
   return newState;
 };
@@ -343,6 +354,7 @@ var reducer = function(state, action) {
 var store = createStore(reducer, applyMiddleware(thunk));
 
 store.dispatch(fetchDataSource('cchf'));
+store.dispatch(fetchCities());
 
 // ... and render!
 
