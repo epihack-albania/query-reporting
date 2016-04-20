@@ -5,7 +5,7 @@ const initialState = {
   locations: [],
   dataSource: null,
   filters: [1,2],
-  aggregations: [],
+  aggregations: ['Year', 'District', 'Gender'],
   nextFilterId: 3,
   currentData: null
 };
@@ -65,6 +65,13 @@ var FilterTableState = function(state) {
   };
 };
 FilterTable = connect(FilterTableState)(FilterTable);
+
+function AggregationsPanelState(state) {
+  return {
+    aggregations: state.aggregations
+  };
+}
+AggregationsPanel = connect(AggregationsPanelState)(AggregationsPanel);
 
 var QueryPanelState = function(state) {
   return {

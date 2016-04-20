@@ -75,3 +75,30 @@ class FiltersPanel extends React.Component {
   }
 }
 
+class AggregationRow extends React.Component {
+  render() {
+    let aggregationFields = _.map(['Year', 'Quarter', 'Month', 'Week', 'Day', 'District', 'Municipality', 'Village', 'Age', 'Gender'], function(by) { return {value: by, label: by}; });
+    return (
+      <div class="row form-inline aggregation-row">
+        <label for="agg1">Aggregate by</label>
+        <Select value={this.props.by} options={aggregationFields}/>
+      </div>
+    );
+  }
+}
+
+class AggregationsPanel extends React.Component {
+  render() {
+    let aggs = _.map(this.props.aggregations, function(agg, index) {
+      return <AggregationRow by={agg} key={index}/>;
+    });
+    return (
+      <div className="col-md-12">
+        <fieldset>
+          <legend>Aggregations</legend>
+          {aggs}
+        </fieldset>
+      </div>
+    );
+  }
+}
