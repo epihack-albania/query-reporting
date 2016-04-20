@@ -36,15 +36,6 @@ var DataSources = {
   }
 };
 
-var Locations = [
-  "Tirana",
-  "Saranda",
-  "Elbasan",
-  "Korça",
-  "Durrsi",
-  "Shkodra"
-];
-
 
 // Wire dependencies
 
