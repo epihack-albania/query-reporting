@@ -20,14 +20,14 @@ Run `gulp deploy` to deploy to Github pages.
 
 ## Group Participants
 
-Alba Rexha
-Armend Iseni
-Artan Simaku
-Atea Cicako
-Donika Bardhi
-Dorina Toci
-Gustavo Giráldez
-Luljieta Alla
+- Alba Rexha
+- Armend Iseni
+- Artan Simaku
+- Atea Cicako
+- Donika Bardhi
+- Dorina Toci
+- Gustavo Giráldez
+- Luljieta Alla
 
 
 ## License
