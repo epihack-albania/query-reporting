@@ -1,9 +1,9 @@
 # Query and Reporting
 
 Prototype of a query and reporting module of the One Health Dashboard for
-[SECID](https://secids.com) built during the Epihack Albania 2016.
+[SECID](https://secids.com) built during the [Epihack](http://e-learning.epihack.org/) Albania 2016.
 
-See the live version [here](https://epihack-albania.github.io/query-reporting)
+See the live version [here](https://epihack-albania.github.io/query-reporting).
 
 
 ## Development setup
