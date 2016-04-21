@@ -30,6 +30,10 @@ Run `gulp deploy` to deploy to Github pages.
 - Luljieta Alla
 
 
+## Acknowledgments
+
+- Exporting to CVS using jQuery, Terry Young, http://jsfiddle.net/terryyounghk/KPEGU/
+
 ## License
 
 MIT
